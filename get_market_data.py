@@ -61,33 +61,38 @@ def get_market_data(client, symbol):
     """
 
     N = len(response['candles']) + 1
-    timestamps = np.empty(N, dtype=dt.datetime)
-    opens =      np.zeros(N)
-    highs =      np.zeros(N)
-    lows =       np.zeros(N)
-
-    for i,e in enumerate(response['candles']):
-        
-        timestamps[i] = dt.datetime.fromtimestamp(e['datetime']//1000)
-        opens[i] =      e['open']
-        highs[i] =      e['high']
-        lows[i] =       e['low']
-        
-    assert i == N-2
     
-    timestamps[N-1] = timestamps[N-2] + dt.timedelta(minutes=1)
-    opens[N-1] =      e['close']
-    highs[N-1] =      np.nan
-    lows[N-1] =       np.nan
+    # if data was returned
+    if N > 1:
+        
+        timestamps = np.empty(N, dtype=dt.datetime)
+        opens =      np.zeros(N)
+        highs =      np.zeros(N)
+        lows =       np.zeros(N)
     
-    return timestamps, opens, highs, lows
+        for i,e in enumerate(response['candles']):
+            
+            timestamps[i] = dt.datetime.fromtimestamp(e['datetime']//1000)
+            opens[i] =      e['open']
+            highs[i] =      e['high']
+            lows[i] =       e['low']
+        
+        timestamps[N-1] = timestamps[N-2] + dt.timedelta(minutes=1)
+        opens[N-1] =      e['close']
+        highs[N-1] =      np.nan
+        lows[N-1] =       np.nan
+        
+        return timestamps, opens, highs, lows
+    
+    else:
+        return None, None, None, None
 
 
-
-from common import get_client
-import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
+    
+    from common import get_client
+    import matplotlib.pyplot as plt
     
     client = get_client()
     

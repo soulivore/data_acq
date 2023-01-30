@@ -8,8 +8,9 @@ Created on Fri Jan 20 12:20:55 2023
 import httpx
 from tda.client import Client as tcc
 import re
+import time
 
-from common import string_contains, get_client
+from common import string_contains, FRAME_PERIOD
 
 
 
@@ -27,9 +28,7 @@ def remove_desc_prefix(desc):
 
 
 
-def get_symbols():
-    
-    client = get_client()
+def get_symbols(client):
     
     symbols = []
     
@@ -37,6 +36,8 @@ def get_symbols():
     
     # see below for why we're getting symbol info letter by letter
     for letter in alphabet:
+        
+        frame_start = time.time() # for frame timing
         
         print(letter, end='')
         
@@ -90,7 +91,10 @@ def get_symbols():
                     
                     symbols.append((symbol, remove_desc_prefix(response[symbol]['description'])))
         
-        
+        # throttle to frame period
+        time_spent = time.time() - frame_start
+        if time_spent < FRAME_PERIOD:
+            time.sleep(FRAME_PERIOD - time_spent)
     
     symbols.sort()    
     
@@ -197,7 +201,11 @@ def read_symbols():
     
 if __name__ == "__main__":
     
-    symbols = get_symbols()
+    from common import get_client
+    
+    client = get_client()
+    
+    symbols = get_symbols(client)
     
     write_symbols(symbols)
     

@@ -11,6 +11,9 @@ import atexit
 from tda.auth import easy_client
 
 
+FRAME_PERIOD = 0.51 # frequency in seconds
+
+
 
 # returns a datetime with the same date as the input
 #   but with hour, min, sec, and us zeroed out
