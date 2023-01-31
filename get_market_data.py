@@ -5,8 +5,7 @@ Created on Sat Jan 21 18:45:33 2023
 @author: maxwe
 """
 
-import httpx
-import sys
+from retries import get_price_history_every_minute_retry
 import numpy as np
 import datetime as dt
 
@@ -16,12 +15,17 @@ import datetime as dt
 # first argument is the easy_client
 def get_market_data(client, symbol):
     
-    response_raw = client.get_price_history_every_minute(
+    # response_raw = client.get_price_history_every_minute(
+    #     symbol, 
+    #     need_extended_hours_data=False)
+    # assert response_raw.status_code == httpx.codes.OK
+    
+    # response = response_raw.json()   
+    
+    response = get_price_history_every_minute_retry(
+        client, 
         symbol, 
         need_extended_hours_data=False)
-    assert response_raw.status_code == httpx.codes.OK
-    
-    response = response_raw.json()   
 
     """
     OUTPUT FORMAT NOTES
@@ -60,6 +64,9 @@ def get_market_data(client, symbol):
         that indicates the closing value of the previous row 
     """
 
+    if response is None:
+        return None, None, None, None
+
     N = len(response['candles']) + 1
     
     # if data was returned
@@ -86,7 +93,7 @@ def get_market_data(client, symbol):
     
     else:
         return None, None, None, None
-
+    
 
 
 if __name__ == "__main__":
