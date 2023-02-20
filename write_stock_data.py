@@ -29,7 +29,7 @@ import pandas as pd
 import pyarrow.feather as feather
 
 from common import beginning_of_day, yyyymmdd, FRAME_PERIOD
-from get_market_data import get_market_data
+from get_stock_data import get_stock_data
 
 
 
@@ -43,7 +43,7 @@ ONE_DAY = dt.timedelta(1)
 
 # first argument is the easy_client
 # second argument is the symbol list
-def write_data(client, symbols):
+def write_stock_data(client, symbols):
     
     print("Downloading historal data...")
     
@@ -66,7 +66,7 @@ def write_data(client, symbols):
         
         print("  ", symbol)
         
-        timestamps, opens, highs, lows = get_market_data(client, symbol)
+        timestamps, opens, highs, lows = get_stock_data(client, symbol)
         
         # if data was returned
         if timestamps is not None:
@@ -160,6 +160,6 @@ if __name__ == "__main__":
     
     symbols = ['AAPL', 'MSFT', 'JPM']
     
-    write_data(client, symbols)
+    write_stock_data(client, symbols)
     
     print("Done")

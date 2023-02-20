@@ -13,14 +13,7 @@ import datetime as dt
 
 # get market data for a particular symbol
 # first argument is the easy_client
-def get_market_data(client, symbol):
-    
-    # response_raw = client.get_price_history_every_minute(
-    #     symbol, 
-    #     need_extended_hours_data=False)
-    # assert response_raw.status_code == httpx.codes.OK
-    
-    # response = response_raw.json()   
+def get_stock_data(client, symbol):
     
     response = get_price_history_every_minute_retry(
         client, 
@@ -103,7 +96,7 @@ if __name__ == "__main__":
     
     client = get_client()
     
-    timestamps, opens, highs, lows = get_market_data(client, 'AAPL')
+    timestamps, opens, highs, lows = get_stock_data(client, 'AAPL')
     
     plt.plot(timestamps, opens)
     plt.xticks(rotation=45, ha="right")

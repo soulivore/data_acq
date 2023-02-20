@@ -14,6 +14,7 @@ at a given periodicity until success or max retries
 
 import httpx
 import time
+from tda.client import Client as tcc
 
 
 
@@ -55,3 +56,35 @@ def get_price_history_every_minute_retry(client, symbol, need_extended_hours_dat
         
             
         
+def get_option_chain_retry(client, symbol):
+    
+    retries = 0
+    
+    while retries <= MAX_RETRIES:
+    
+        try:
+            
+            response_raw = client.get_option_chain(
+                symbol,
+                contract_type=tcc.Options.ContractType.ALL,
+                include_quotes=True)
+            assert response_raw.status_code == httpx.codes.OK
+            
+            response = response_raw.json()
+            
+            return response
+        
+        except AssertionError:
+            
+            print("Assertion failed in get_option_chain(). Retrying...")
+
+        except:
+            
+            print("Exception caught in get_option_chain(). Retrying...")
+            
+        retries += 1
+        time.sleep(RETRY_PERIOD)
+        
+    # max retries exceeded
+    print("Maximum retries exceeded. Aborting.")
+    return None        
