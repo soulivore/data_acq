@@ -11,7 +11,7 @@ import datetime as dt
 
 
 
-# get market data for a particular symbol
+# get price and volume data for a particular symbol
 # first argument is the easy_client
 def get_stock_data(client, symbol):
     

@@ -11,11 +11,15 @@ from retries import get_option_chain_retry
 
 
 
+# get options chain for a particular symbol
+# first argument is the easy_client
 def get_options_data(client, symbol):
     
     response = get_option_chain_retry(client, symbol)
-
-    print(response.keys())
+    
+    # if nothing was returned, return nothing
+    if response is None:
+        return None
 
     """
     OUTPUT FORMAT NOTES
@@ -79,6 +83,8 @@ def get_options_data(client, symbol):
             gamma
             theta
             vega
+    
+    print(response.keys())
 
     print("")
     print(type(response['putExpDateMap']))
@@ -102,73 +108,84 @@ def get_options_data(client, symbol):
     
     """
 
-    DTE_array = []
-    strike_array = []
-    type_array = []
-    multiplier_array = []
-    mark_array = []
-    IV_array = []
-    delta_array = []
-    gamma_array = []
-    theta_array = []
-    vega_array = []
-    
-    # iterate over option type, i.e. puts and calls
-    for pc_key,pc in zip(['putExpDateMap', 'callExpDateMap'],['p', 'c']):
-        
-        # iterate over expiration date
-        exp_keys = list(response[pc_key].keys())
-        
-        for exp_key in exp_keys:
-            
-            # iterate over strike prices
-            strike_keys = list(response[pc_key][exp_key].keys())
-            
-            for strike in strike_keys:
-                
-                option = response[pc_key][exp_key][strike][0]
-                
-                # record data
-                DTE_array.append(       exp_key[exp_key.find(':')+1:])
-                strike_array.append(    strike)
-                type_array.append(      pc)
-                multiplier_array.append(option['multiplier'])
-                mark_array.append(      option['mark'])
-                IV_array.append(        option['volatility'])
-                delta_array.append(     option['delta'])
-                gamma_array.append(     option['gamma'])
-                theta_array.append(     option['theta'])
-                vega_array.append(      option['vega'])              
-                
-    # turn it into a pandas dataframe
-    data_out = list(zip(
-        DTE_array,
-        strike_array,
-        type_array,
-        multiplier_array,
-        mark_array,
-        IV_array,
-        delta_array,
-        gamma_array,
-        theta_array,
-        vega_array
-        ))
+    if 'status' in response:
+        if response['status'] == 'SUCCESS':
 
-    df_out = pd.DataFrame(data_out, columns=[
-        'DTE',
-        'strike',
-        'type',
-        'multiplier',
-        'mark',
-        'IV',
-        'delta',
-        'gamma',
-        'theta',
-        'vega'
-        ])
-    
-    return df_out
-
+            DTE_array = []
+            strike_array = []
+            type_array = []
+            multiplier_array = []
+            mark_array = []
+            IV_array = []
+            delta_array = []
+            gamma_array = []
+            theta_array = []
+            vega_array = []
+            
+            # iterate over option type, i.e. puts and calls
+            for pc_key,pc in zip(['putExpDateMap', 'callExpDateMap'],['p', 'c']):
+                
+                # iterate over expiration date
+                exp_keys = list(response[pc_key].keys())
+                
+                for exp_key in exp_keys:
+                    
+                    # iterate over strike prices
+                    strike_keys = list(response[pc_key][exp_key].keys())
+                    
+                    for strike in strike_keys:
+                        
+                        option = response[pc_key][exp_key][strike][0]
+                        
+                        # record data
+                        DTE_array.append(       exp_key[exp_key.find(':')+1:])
+                        strike_array.append(    strike)
+                        type_array.append(      pc)
+                        multiplier_array.append(float(option['multiplier']))
+                        mark_array.append(      float(option['mark']))
+                        IV_array.append(        float(option['volatility']))
+                        delta_array.append(     float(option['delta']))
+                        gamma_array.append(     float(option['gamma']))
+                        theta_array.append(     float(option['theta']))
+                        vega_array.append(      float(option['vega']))              
+                        
+            # turn it into a pandas dataframe
+            data_out = list(zip(
+                DTE_array,
+                strike_array,
+                type_array,
+                multiplier_array,
+                mark_array,
+                IV_array,
+                delta_array,
+                gamma_array,
+                theta_array,
+                vega_array
+                ))
+        
+            df_out = pd.DataFrame(data_out, columns=[
+                'DTE',
+                'strike',
+                'type',
+                'multiplier',
+                'mark',
+                'IV',
+                'delta',
+                'gamma',
+                'theta',
+                'vega'
+                ])
+            
+            return df_out
+        
+        else:
+            print("    ", "Warning: options chain response status was", response['status'], ". Returning None.")
+            return None
+        
+    else:
+        print("    ", "Warning: options chain response had no data. Returning None.")
+        return None
+            
 
 
 from common import get_client
