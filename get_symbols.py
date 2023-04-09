@@ -169,6 +169,8 @@ def get_symbols(client):
         else:
             
             i += 1
+            
+    print("\t...done")
     
     return symbols
 
@@ -182,6 +184,8 @@ def write_symbols(symbols):
         for e in symbols:
             symbol = e[0] + "\n"
             file.write(symbol)
+            
+    print("\t...done")
     
 
 
@@ -194,6 +198,8 @@ def read_symbols():
     with open('symbols.txt', encoding="utf-8") as file:
         for line in file:
             symbols.append(line.strip())
+            
+    print("\t...done")
     
     return symbols
 
@@ -208,8 +214,6 @@ if __name__ == "__main__":
     symbols = get_symbols(client)
     
     write_symbols(symbols)
-    
-    print("Done.")
     
 
     

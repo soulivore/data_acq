@@ -24,41 +24,41 @@ Write each dataframe as a feather file: https://arrow.apache.org/docs/python/fea
 """
 
 import time
-import datetime as dt
+#import datetime as dt
 import pandas as pd
 import pyarrow.feather as feather
 
-from common import beginning_of_day, yyyymmdd, FRAME_PERIOD
+from common import FRAME_PERIOD
 from get_stock_data import get_stock_data
 
 
 
 # for looking at datetimes
-DUMMY_SYMBOL = 'AAPL'
+###DUMMY_SYMBOL = 'AAPL'
 
 # timedelta representing a single day
-ONE_DAY = dt.timedelta(1)
+###ONE_DAY = dt.timedelta(1)
 
 
 
 # first argument is the easy_client
 # second argument is the symbol list
-def write_stock_data(client, symbols):
+def write_stock_data_raw(client, symbols):
     
     print("Downloading historal data...")
     
-    """
-    market data will be stored in a dictionary of the following structure:
-    dict[symbol]
-        dict['timestamps', 'opens,' 'highs', 'lows']
-            each dict contains a vector
-    """
+    #"""
+    #market data will be stored in a dictionary of the following structure:
+    #dict[symbol]
+    #    dict['timestamps', 'opens,' 'highs', 'lows']
+    #        each dict contains a vector
+    #"""
     
     # get market data for the list of symbols
     # also find the earliest date on which there is data
-    market_data = {}
-    first_element_today = {} # we will need this later
-    date = dt.datetime.today()
+    #market_data = {}
+    ###first_element_today = {} # we will need this later
+    ###date = dt.datetime.today()
     
     for symbol in symbols:
         
@@ -71,18 +71,31 @@ def write_stock_data(client, symbols):
         # if data was returned
         if timestamps is not None:
         
-            market_data[symbol] = {
-                'timestamps': timestamps,
-                'opens': opens,
-                'highs': highs,
-                'lows': lows
-                }
+            #market_data[symbol] = {
+                #'timestamps': timestamps,
+                #'opens': opens,
+                #'highs': highs,
+                #'lows': lows
+                #}
             
-            first_element_today[symbol] = 0
+                market_data = list(zip(
+                    timestamps,
+                    opens,
+                    highs,
+                    lows))
+                df_market_data = pd.DataFrame(market_data, columns=[
+                    'timestamps',
+                    'opens',
+                    'highs',
+                    'lows'])
+                filepath = 'data_raw/' + symbol
+                feather.write_feather(df_market_data, filepath)
             
-            first_date = beginning_of_day(market_data[symbol]['timestamps'][0])
-            if first_date < date:
-                date = first_date
+            ###first_element_today[symbol] = 0
+            
+            ###first_date = beginning_of_day(market_data[symbol]['timestamps'][0])
+            ###if first_date < date:
+                ###date = first_date
                 
         # otherwise, skip to the next symbol
         else:
@@ -93,7 +106,16 @@ def write_stock_data(client, symbols):
         if time_spent < FRAME_PERIOD:
             time.sleep(FRAME_PERIOD - time_spent)
     
-    print("  ", "First date of data:", date)
+    ###print("  ", "First date of data:", date)
+    
+    print("\t...done")
+
+
+
+
+
+"""
+def format_stock_data():
     
     print("Building and writing dataframes...")
     
@@ -149,17 +171,28 @@ def write_stock_data(client, symbols):
         
         # move on to the next day
         date += ONE_DAY
+"""
 
 
 
-from common import get_client
 
 if __name__ == "__main__":
+    
+    from common import get_client
+    import matplotlib.pyplot as plt   
     
     client = get_client()
     
     symbols = ['AAPL', 'MSFT', 'JPM']
     
-    write_stock_data(client, symbols)
+    write_stock_data_raw(client, symbols)
     
-    print("Done")
+    # check output by reading in a raw data file and plotting it
+    SYMBOL = 'AAPL'    
+
+    market_data = feather.read_feather('data_raw/'+SYMBOL)
+    
+    plt.plot(market_data['timestamps'], market_data['opens'])
+    plt.xticks(rotation=45, ha="right")
+    plt.title(SYMBOL)
+    plt.show()

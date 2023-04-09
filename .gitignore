@@ -2,3 +2,4 @@ __pycache__
 .pyc
 token.json
 symbols.txt
+data_raw/
